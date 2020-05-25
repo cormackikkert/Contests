@@ -1,0 +1,1 @@
+def brute_force(nums):

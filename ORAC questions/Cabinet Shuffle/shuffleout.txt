@@ -1,0 +1,10 @@
+Seeing chair 4
+Reversing 10
+Reversing 9
+Reversing 8
+Reversing 7
+Reversing 6
+Finished reversing, found 2
+Seeing person 5
+2
+1
