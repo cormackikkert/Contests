@@ -1,0 +1,7 @@
+
+*.stackdump
+ORAC questions/.Stalk/geckodriver.log
+ORAC questions/.Stalk/last.py
+ORAC questions/.Stalk/outputs.csv
+ORAC questions/.Stalk/solved.p
+*.exe
