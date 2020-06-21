@@ -54,5 +54,38 @@ namespace output {
 using namespace output;
 
 int main() {
-    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	ll N; cin >> N;
+	ll B = (N + 1) / 2;
+	ll A = N - B;
+
+	vll arr (B);
+	F0R(i, B) cin >> arr[i];
+	ll X; cin >> X;
+	
+	if (X > 0) {
+		ll sum = X * A;
+		for (ll x : arr) sum += x;
+		print((sum > 0) ? N : -1);
+	} else {
+		ll cs = X * A;
+		ll all = 0;
+		ll ans = -1;
+		bool inUse = false;
+		for (ll i = B - 1; i >= 0; --i) {
+			cs -= X;
+			cs += arr[i]; all += arr[i];
+			if (cs <= 0) inUse = false;
+			if (!inUse && all + X * A > 0) {
+				ans = N - i;
+				cs = all + X * A;
+				inUse = true;
+			}
+		}
+		if (inUse) {
+			print(ans);
+		} else {
+			print(-1);
+		}
+	}
 }
