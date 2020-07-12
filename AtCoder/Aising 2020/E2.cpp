@@ -5,6 +5,8 @@ using namespace std;
 #define F0R(i,a) FOR(i,0,a)
 #define ROF(i,a,b) for (int i = (b)-1; i >= (a); --i)
 #define R0F(i,a) ROF(i,0,a)
+#define f first
+#define s second
 
 using ll = long long;
 using ld = long double;
@@ -13,7 +15,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +39,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -54,47 +55,50 @@ namespace output {
 
 using namespace output;
 
+ll loss(vector<pii>& arr) {
+	sort(arr.begin(), arr.end());
+	multiset<int> vals;
+	int size = 0;
+	ll ans = 0;
+	for (pii val : arr) {
+		int K = val.first;
+		int diff = val.second;
+		
+		vals.insert(diff);
+		size++;
+
+		while (size > K) {
+			--size;
+			ans += *--vals.end();
+			vals.erase(--vals.end());
+		}
+	}
+	return ans;
+}
+
+void solve() {
+	int N; cin >> N;
+	vector<pii> wantL;
+	vector<pii> wantR;
+
+	ll ans = 0;
+
+	F0R(i, N) {
+		int K, L, R; cin >> K >> L >> R;
+		if (L > R) {
+			ans += L; 
+			wantL.push_back({K, R - L});
+		} else {
+			ans += R;
+			wantR.push_back({N-K, L - R});
+		}
+	}
+	print(ans + loss(wantL) + loss(wantR));
+	
+}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
-	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
-	}
-
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
-	}
-	print("Yes");
+	int T; cin >> T;
+	F0R(i, T) solve();
 }

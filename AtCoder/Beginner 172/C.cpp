@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -56,45 +55,21 @@ using namespace output;
 
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
+	ll N, M, K; cin >> N >> M >> K;
+	vi AS (N);
+	F0R(i, N) cin >> AS[i];
+	vi BS (M);
+	F0R(i, M) cin >> BS[i];
+
+	ll ltotal = 0, rtotal = 0;
+	int j = 0;
+	while (j < M && ltotal + BS[j] <= K) ltotal += BS[j++];
+	int best = j;
 	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
+		rtotal += AS[i];
+		while (j > 0 && ltotal + rtotal > K) ltotal -= BS[--j];
+		if (j == 0 && rtotal > K) break;
+		best = max(best, i + 1 + j);
 	}
-
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
-	}
-	print("Yes");
+	print(best);
 }

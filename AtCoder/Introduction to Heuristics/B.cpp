@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -54,47 +53,29 @@ namespace output {
 
 using namespace output;
 
+int N = 26, D;
+vi last (N, -1);
+vi CS (N);
+vector<vi> SAT;
+
+int sat;
+vi ans;
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
-	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
+
+	cin >> D; ans.resize(D);
+	F0R(i, N) cin >> CS[i];
+	SAT = vector<vi> (D, vi (N));
+	F0R(i, D) F0R(j, N) cin >> SAT[i][j];
+
+	sat = 0;
+	F0R(i, D) {
+		int choice; cin >> choice; --choice;
+		sat += SAT[i][choice];
+		last[choice] = i;
+		F0R(j, N) sat -= CS[j] * (i - last[j]);
+		print(sat);
 	}
-
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
-	}
-	print("Yes");
+	
 }

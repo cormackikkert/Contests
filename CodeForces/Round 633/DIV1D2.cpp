@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -54,47 +53,45 @@ namespace output {
 
 using namespace output;
 
+vector<vi> graph;
+
+vi rScore; 
+vi bScore;
+
+int ans = 0;
+void dfs(int cur, int par) {
+	vi bScoreChildren; bScoreChildren.push_back(0);
+	vi rScoreChildren; rScoreChildren.push_back(0);
+
+	int cnt = 0;
+	for (int n : graph[cur]) if (n != par) {
+		dfs(n, cur);
+		++cnt;
+		bScoreChildren.push_back(bScore[n]);
+		rScoreChildren.push_back(rScore[n]);
+	}
+	sort(bScoreChildren.rbegin(), bScoreChildren.rend());
+	sort(rScoreChildren.rbegin(), rScoreChildren.rend());
+
+	bScore[cur] = cnt ? cnt - 1 + rScoreChildren[0] : 0;
+	rScore[cur] = max(bScore[cur], 1 + bScoreChildren[0]);
+	ans = max(ans, rScore[cur]);
+	if (cnt >= 2) ans = max(ans, max(cnt + (par != -1) - 2 + rScoreChildren[0] + rScoreChildren[1], 1 + bScoreChildren[0] + bScoreChildren[1]));
+}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
-	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
+	int N; cin >> N;
+
+	graph.resize(N);
+	rScore.resize(N);
+	bScore.resize(N);
+	
+	F0R(i, N-1) {
+		int a, b; cin >> a >> b; --a; --b;
+		graph[a].push_back(b);
+		graph[b].push_back(a);
 	}
-
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
-	}
-	print("Yes");
+	dfs(0, -1);
+	print(ans);
 }

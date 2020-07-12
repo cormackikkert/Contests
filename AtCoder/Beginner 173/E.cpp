@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -54,47 +53,60 @@ namespace output {
 
 using namespace output;
 
+ll MOD = 1e9+7;
+
 int main() {
-    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
-	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
+    // ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	int N, K; cin >> N >> K;
+	vll arr (N);
+	F0R(i, N) cin >> arr[i];
+	vll posa;
+	vll nega;
+	for (ll x : arr) {
+		if (x > 0) posa.push_back(x);
+		else       nega.push_back(x);
 	}
+	sort(posa.begin(), posa.end());
+	sort(nega.begin(), nega.end());
 
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
+	ll res = 1;
+	if (((posa.size() == 0) && K % 2 == 0) || (posa.size() > 0 && (nega.size() / 2 * 2 + posa.size() >= K))) {
+		// create pos
+		int i = 0;
+		int j = posa.size() - 1;
+		while (K >= 2) {
+			ll opneg = (i + 1 < nega.size()) ? nega[i] * nega[i+1] : -1;
+			ll oppos = (j - 1 >= 0) ? posa[j] * posa[j-1] : -1;
+			assert ((opneg != -1) || (oppos != -1));
+			if (opneg >= oppos) {
+				res *= nega[i] * nega[i+1] % MOD; res %= MOD;
+				i += 2;
+			} else {
+				res *= posa[j] * posa[j-1] % MOD; res %= MOD;
+				j -= 2;
+			}
+			K -= 2;
 		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
+		if (K == 1) {
+			res *= posa[j]; res %= MOD;
 		}
-		total += d.second;
+	} else {
+		// make highest neg
+		int i = nega.size() - 1;
+		int j = 0;
+		while (K) {
+			ll opneg = (i >= 0) ? (-nega[i]) : INF;
+			ll oppos = (j < posa.size()) ? posa[j] : INF;
+			assert ((opneg != INF) || (oppos != INF));
+			if (opneg < oppos) {
+				res *= (MOD + nega[i]); res %= MOD;
+				--i;
+			} else {
+				res *= posa[j]; res %= MOD;
+				j++;
+			}
+			--K;
+		}	
 	}
-	print("Yes");
+	print((res + MOD) % MOD);
 }

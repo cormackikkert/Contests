@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -54,47 +53,32 @@ namespace output {
 
 using namespace output;
 
+int T = 20;
+
 int main() {
-    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
+	ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	int N; cin >> N;
+	vll arr (N);
+	F0R(i, N) cin >> arr[i], --arr[i];
+
+	vi occ (T);
+	vector<vll> inv (T, vll (T));
 	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
+		occ[arr[i]]++;
+		F0R(j, T) if (j != arr[i]) {
+			inv[arr[i]][j] += occ[j];
 		}
-		data[i] = {deep, total};
 	}
 
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
+	vll dp (1 << T, INF);
+	dp[0] = 0;
 
-	if (sum != 0) {
-		print("No");
-		return 0;
+	F0R(i, 1 << T) {
+		F0R(j, T) if (i & (1 << j)) {
+			ll insertCost = 0;
+			F0R(k, T) if (k != j && (i & (1 << k))) insertCost += inv[j][k];
+			dp[i] = min(dp[i], dp[i ^ (1 << j)] + insertCost);
+		}	
 	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
-	}
-	print("Yes");
+	print(dp[(1<<T) - 1]);
 }

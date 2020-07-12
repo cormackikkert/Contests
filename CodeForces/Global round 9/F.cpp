@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -54,47 +53,26 @@ namespace output {
 
 using namespace output;
 
+const int N = 50;
+int dp [N][N][N][4];
+
+bool recurse(int i, int j, int k, int l) {
+	if (i == j || j == k || k == i) return false;
+	if (dp[i][j][k][l] != -1) return dp[i][j][k][l];
+	bool allWin = true;
+	for (int f = 0; f < N; ++f) {
+		if (l != 0 && i + f < N) allWin &= recurse(i + f, j, k, 0);
+		if (l != 1 && j + f < N) allWin &= recurse(i, j + f, k, 1);
+		if (l != 2 && k + f < N) allWin &= recurse(i, j, k + f, 2);
+	}
+	dp[i][j][k][l] = !allWin;
+	return !allWin;
+}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
-	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
+	F0R(i, N) F0R(j, N) F0R(k, N) F0R(l, 3) dp[i][j][k][l] = -1;
+	F0R(i, N) F0R(j, N) F0R(k, N) if (recurse(i, j, k, 3)) {
+		print(i, j, k);
 	}
-
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
-	}
-	print("Yes");
 }

@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -54,47 +53,73 @@ namespace output {
 
 using namespace output;
 
+ll MOD = 1e9+7;
+
+ll binpow(ll a, ll b) {
+    ll res = 1;
+    while (b > 0) {
+        if (b & 1)
+            res = res * a;
+        res %= MOD;
+        a = a * a;
+        a %= MOD;
+        b >>= 1;
+    }
+    return res;
+}
+
+ll inverse(ll n) {
+    return binpow(n, MOD-2);
+}
+
+vector<vi> graph;
+vi isBlack;
+
+vll numOne;
+vll numZero; 
+
+void dfs(int cur, int par) {
+	ll bWays, wWays;
+
+	for (int n : graph[cur]) if (n != par) dfs(n, cur);
+
+	if (isBlack[cur]) {
+		bWays = 1;
+		wWays = 0;
+		for (int n : graph[cur]) if (n != par) {
+			bWays *= numOne[n] + numZero[n]; bWays %= MOD;
+		}
+	} else {
+		bWays = 0;
+		wWays = 1;
+		for (int n : graph[cur]) if (n != par) {
+			wWays *= (numZero[n] + numOne[n]) % MOD; wWays %= MOD;
+		}
+		for (int n : graph[cur]) if (n != par) {
+			bWays += inverse((numZero[n] + numOne[n]) % MOD) * wWays % MOD * numOne[n] % MOD; bWays %= MOD;
+		}
+	}
+
+	numOne[cur] = bWays;
+	numZero[cur] = wWays;
+}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
-	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
+	
+	int N; cin >> N;
+	graph.resize(N);
+	isBlack.resize(N);
+	numOne.resize(N);
+	numZero.resize(N);
+
+	F0R(i, N-1) {
+		int x; cin >> x;
+		graph[i+1].push_back(x);
+		graph[x].push_back(i+1);
 	}
-
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
-	}
-	print("Yes");
+	F0R(i, N) cin >> isBlack[i];
+	
+	dfs(0, -1);
+	print(numOne[0]);
 }

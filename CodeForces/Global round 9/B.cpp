@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -54,47 +53,28 @@ namespace output {
 
 using namespace output;
 
+void solve() {
+	int N, M; cin >> N >> M;
+	vector<vi> grid (N, vi (M));
+	F0R(i, N) F0R(j, M) cin >> grid[i][j];
+	vector<vi> ans (N, vi (M, 4));
+	F0R(i, N) F0R(j, M) if (i == 0 || i == N-1 || j == 0 || j == M-1) ans[i][j] = 3;
+	ans[0][0] = 2;
+	ans[N-1][0] = 2;
+	ans[0][M-1] = 2;
+	ans[N-1][M-1] = 2;
+	F0R(i, N) F0R(j, M) if (grid[i][j] > ans[i][j]) {
+		print("NO"); return;
+	} 
+	print("YES");
+	for (vi row : ans) {
+		for (int x : row) cout << x << " ";
+		cout << endl;
+	}
+}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
-	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
-	}
-
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
-	}
-	print("Yes");
+	int T; cin >> T;
+	F0R(i, T) solve();
 }

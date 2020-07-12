@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -55,46 +54,40 @@ namespace output {
 using namespace output;
 
 int main() {
-    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
-	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
+	ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	int N; cin >> N;
+	vector<pii> arr (2*N);
+	F0R(i, 2*N) {
+		char c; cin >> c;
+		int a; cin >> a;
+		arr[i] = {c == 'B', a};
 	}
 
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
+	vector<vi> wbelow(2*N, vi (N+1));
+	F0R(i, 2*N) F0R(j, N+1) {
+		wbelow[i][j] = (!arr[i].first) && arr[i].second <= j;
+		if (i > 0) wbelow[i][j] += wbelow[i-1][j];
+	}
+	
+	vector<vi> bbelow(2*N, vi (N+1));
+	F0R(i, 2*N) F0R(j, N+1) {
+		bbelow[i][j] = (arr[i].first) && arr[i].second <= j;
+		if (i > 0) bbelow[i][j] += bbelow[i-1][j];
 	}
 
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
+	vi wpos (N+1);
+	vi bpos (N+1);
+	F0R(i, 2*N) {
+		if (arr[i].first) bpos[arr[i].second] = i;
+		else wpos[arr[i].second] = i;
 	}
-	print("Yes");
+
+	vector<vi> dp (N+1, vi (N+1, 4*N*N));
+	dp[0][0] = 0;
+	F0R(w, N+1) F0R(b, N+1) {
+		if (w == 0 && b == 0) continue;
+		if (w > 0) dp[w][b] = min(dp[w][b], dp[w-1][b] + wpos[w] - wbelow[wpos[w]][w-1] - bbelow[wpos[w]][b]);
+		if (b > 0) dp[w][b] = min(dp[w][b], dp[w][b-1] + bpos[b] - bbelow[bpos[b]][b-1] - wbelow[bpos[b]][w]);
+	}
+	print(dp[N][N]);
 }

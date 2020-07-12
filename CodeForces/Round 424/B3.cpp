@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -54,47 +53,54 @@ namespace output {
 
 using namespace output;
 
+template<class T> struct Seg { 
+	const T ID = 0; // comb(ID,b) must equal b
+	T combine(T a, T b) { return a+b; } 
+	int n; vector<T> seg;
+	void init(int _n) { n = _n; seg.assign(2*n,ID);}
+
+	void update(int p, T value) {	// set value at position p
+		seg[p += n] = value;
+		for (p /= 2; p; p /= 2) seg[p] = combine(seg[2*p], seg[2*p+1]);
+	}
+    
+	T query(int l, int r) {	 // sum on interval [l, r]
+		T ra = ID, rb = ID; 
+		for (l += n, r += n+1; l < r; l /= 2, r /= 2) {
+			if (l&1) ra = combine(ra,seg[l++]);
+			if (r&1) rb = combine(seg[--r],rb);
+		}
+		return combine(ra,rb);
+	}
+};
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
+	int N; cin >> N;
+	Seg<int> seg; seg.init(N);
+
+	map<int, vi> inds; 
 	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
+		int x; cin >> x;
+		inds[x].push_back(i);
 	}
 
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
+	ll ans = 0;
 
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
+	int pos = 0;
+	for (pair<int, vi> data : inds) {
+		vi arr = data.second;
+		int start = lower_bound(arr.begin(), arr.end(), pos) - arr.begin();
+		if (start == 0) {
+			ans += 1 + arr.back() - pos - seg.query(pos, arr.back());
+			pos = (arr.back() + 1) % N;
 		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
+			ans += 1 + N - pos + arr[start-1] - seg.query(pos, N-1) - seg.query(0, arr[start-1]);
+			pos = (arr[start-1] + 1) % N;
 		}
-	});
 
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
+		for (int i : arr) seg.update(i, 1);
+
 	}
-	print("Yes");
+	print(ans);
 }

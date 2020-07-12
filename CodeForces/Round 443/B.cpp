@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -54,47 +53,58 @@ namespace output {
 
 using namespace output;
 
+ll N, K, M;
+ll solve(deque<int>& arr) {
+	if (arr.size() == 0) return 0;
+
+	ll i = 0;
+	while (i < arr.size() && arr[i] == arr[0]) ++i;
+	
+	// all elements are the same
+	if (i == arr.size()) {
+		return arr.size() * M % K;  
+	}
+
+	// cant merge suffix + prefix
+	if (arr[0] != arr[arr.size() - 1]) {
+		return arr.size() * M;
+	}
+
+	ll j = arr.size() - 1;
+	while (arr[arr.size() - 1] == arr[j]) --j;
+	++j;
+
+	// remove elements	
+	int os = arr.size();
+	F0R(k, i) arr.pop_front();
+	F0R(k, os - j) arr.pop_back();
+
+	if ((i + os - j) % K == 0) {
+		ll ans = solve(arr);
+		if (ans == 0) return 0;
+		else return (i + os - j) + ans;
+	} else {
+		return (i + os - j) + arr.size() * M + ((i + os - j) % K) * (M - 1);
+	}
+}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
+	cin >> N >> K >> M;
+	vector<pii> create;
+	deque<int> arr;
+	int last = -1;
+	int count = 0;
 	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
+		int x; cin >> x;
+		if (create.empty() || create.back().first != x) {
+			create.push_back({x, 0});
 		}
-		data[i] = {deep, total};
+		create.back().second++;
+		if (create.back().second == K) create.pop_back();
 	}
-
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
+	for (pii x : create) {
+		F0R(i, x.second) arr.push_back(x.first);
 	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
-	}
-	print("Yes");
+	print(solve(arr));
 }

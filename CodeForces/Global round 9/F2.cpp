@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -56,45 +55,40 @@ using namespace output;
 
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
-	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
-	}
+	ll A, B, C; cin >> A >> B >> C;
+	cout << "First" << endl;
+	fflush(stdout);
+	
+	ll add = 1e11;
+	cout << add << endl;
+	fflush(stdout);
 
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
+	int x; cin >> x;
+	if (x == 0) return 0;
+	if (x == 1) A += add;
+	if (x == 2) B += add;
+	if (x == 3) C += add;
 
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
+	vll args = {A, B, C};
+	sort(args.begin(), args.end());
 
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
+	add = 2 * args[2] - args[1] - args[0];
+	cout << add << endl;
+	fflush(stdout);
+	
+	cin >> x;
+	if (x == 0) return 0;
+	if (x == 1) A += add;
+	if (x == 2) B += add;
+	if (x == 3) C += add;
 
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
-	}
-	print("Yes");
+	args = {A, B, C};
+	sort(args.begin(), args.end());
+	add = args[2] - args[1];
+	cout << add << endl;
+	fflush(stdout);
+	
+	cin >> x;
+	if (x == 0) return 0;
+	assert(false);
 }

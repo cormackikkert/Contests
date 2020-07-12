@@ -5,6 +5,8 @@ using namespace std;
 #define F0R(i,a) FOR(i,0,a)
 #define ROF(i,a,b) for (int i = (b)-1; i >= (a); --i)
 #define R0F(i,a) ROF(i,0,a)
+#define f first
+#define s second
 
 using ll = long long;
 using ld = long double;
@@ -38,7 +40,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -55,46 +57,46 @@ namespace output {
 using namespace output;
 
 int main() {
-    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
-	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
-	}
-
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
+	ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	ll N, X, D; cin >> N >> X >> D;
+	
+	if (D == 0) {
+		if (X != 0) print(N+1);
+		else print(1);
 		return 0;
 	}
 
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
+	if (D < 0) {
+		X = X + (N-1) * D; D = abs(D);
 	}
-	print("Yes");
+
+	map<int, vector<pll>> seqs;
+	F0R(i, N+1) {
+		ll lo = X * i + D * i * (i-1)/2;
+		ll hi = X * i + D * ((N-1) * N / 2 - (N-i-1) * (N-i)/2);
+		seqs[X * i % D].push_back({lo, hi});
+	}
+
+	ll ans = 0;
+	for (pair<int, vector<pll>> data : seqs) {
+		vector<pll> seq = data.second;
+		sort(seq.begin(), seq.end());
+		ll lval = -1;
+		ll hval = -1;
+		for (int i = 0; i < seq.size(); ++i) {
+			pll range = seq[i];
+			if (lval == -1) {
+				lval = range.first;
+				hval = range.second;
+			} else if (range.first <= hval) {
+				hval = max(hval, range.second);
+			} else {
+				ans += (hval - lval) / D + 1;
+				lval = range.first;
+				hval = range.second;
+			}
+		}
+		ans += (hval - lval) / D + 1;
+	}
+	print(ans);
 }

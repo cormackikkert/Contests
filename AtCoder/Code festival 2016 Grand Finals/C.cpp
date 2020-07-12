@@ -13,7 +13,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -56,45 +55,30 @@ using namespace output;
 
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
+	int N; cin >> N;
+	multiset<ll> arr;
 	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
+		ll x; cin >> x; arr.insert(x);
 	}
 
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
-	}
-
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
+	int ans = 0;
+	ll left_over = 0;
+	for (int bit = 40; bit >= 0; --bit) {
+		int parity = (left_over & (1LL << bit)) > 0;
+		ll remove = -1;
+		for (ll x : arr) {
+			ll rem = (x % (1LL << (bit + 1)));
+			if (rem == (1LL << bit)) remove = x;
+			parity ^= rem >= (1LL << bit);
 		}
-	});
-
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
+		if (parity == 1) {
+			if (remove == -1) {
+				print(-1); return 0;
+			}
+			arr.erase(arr.find(remove));
+			left_over ^= (remove - 1);
+			++ans;
 		}
-		total += d.second;
 	}
-	print("Yes");
+	print(ans);
 }

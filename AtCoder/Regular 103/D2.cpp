@@ -5,6 +5,8 @@ using namespace std;
 #define F0R(i,a) FOR(i,0,a)
 #define ROF(i,a,b) for (int i = (b)-1; i >= (a); --i)
 #define R0F(i,a) ROF(i,0,a)
+#define f first
+#define s second
 
 using ll = long long;
 using ld = long double;
@@ -13,7 +15,6 @@ ll INF = LLONG_MAX;
 using vi = vector<int>;
 using vll = vector<ll>;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
 
 namespace output {
 	void pr(int x) { cout << x; }
@@ -38,7 +39,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.first,", ",x.second,"}"); 
+		pr("{",x.f,", ",x.s,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -56,45 +57,52 @@ using namespace output;
 
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	ll N; cin >> N;
-	vector<pll> data (N);
+	int N; cin >> N;
+	vector<pair<ll, ll>> points (N);
 	F0R(i, N) {
-		string S; cin >> S;
-		ll total = 0;
-		ll deep = 0;
-		for (char c : S) {
-			if (c == '(') ++total;
-			if (c == ')') --total;
-			deep = min(deep, total);
-		}
-		data[i] = {deep, total};
+		ll x, y; cin >> x >> y;
+		points[i] = {x, y};
 	}
 
-	ll sum = 0;
-	for (pll d : data) sum += d.second;
-
-	if (sum != 0) {
-		print("No");
-		return 0;
+	bool par = (points[0].first^points[0].second)&1;
+	F0R(i, N) if (((points[i].first^points[i].second)&1) != par) {
+		print(-1); return 0;
 	}
 
-	sort(data.begin(), data.end(), [] (const auto& lhs, const auto& rhs) {
-		if ((lhs.second >= 0) ^ (rhs.second >= 0)) {
-			return lhs.second >= 0;
-		} else if (lhs.second >= 0) {
-			return lhs.first > rhs.first;
-		} else {
-			return lhs.second - lhs.first > rhs.second - rhs.first;
-		}
-	});
+	vll sizes;
+	vector<string> ans (N);
 
-	ll total = 0;
-	for (pll d : data) {
-		if (total + d.first < 0) {
-			print("No");
-			return 0;
-		}
-		total += d.second;
+	if (!par) {
+		F0R(i, N) points[i].second++;
+		sizes.push_back(1);
+		F0R(i, N) ans[i] += "D";
 	}
-	print("Yes");
+
+	R0F(d, 32) {
+		sizes.push_back(1ll << d);
+		F0R(i, N) {
+			ll x = points[i].first;
+			ll y = points[i].second;
+			if (y >= x && y >= -x) {
+				ans[i] += "U";
+				points[i].second -= 1ll << d;
+			} else if (y >= x && y < -x) {
+				ans[i] += "L";
+				points[i].first += 1ll << d;
+			} else if (y < x && y >= -x) {
+				ans[i] += "R";
+				points[i].first -= 1ll << d;
+			} else if (y < x && y < -x) {
+				ans[i] += "D";
+				points[i].second += 1ll << d;
+			}
+		}
+	}
+	F0R(i, N) {
+		assert (points[i].first==0 && points[i].second==0);
+	}
+
+	print(sizes.size());
+	for (ll x : sizes) cout << x << " "; cout << endl;
+	F0R(i, N) print(ans[i]);
 }
