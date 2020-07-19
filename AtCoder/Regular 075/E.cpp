@@ -1,0 +1,93 @@
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+#include <bits/stdc++.h>
+
+using namespace __gnu_pbds;
+using namespace std;
+
+#define FOR(i,a,b) for (int i = (a); i < (b); ++i)
+#define F0R(i,a) FOR(i,0,a)
+#define ROF(i,a,b) for (int i = (b)-1; i >= (a); --i)
+#define R0F(i,a) ROF(i,0,a)
+#define f first
+#define s second
+
+using ll = long long;
+using ld = long double;
+ll INF = LLONG_MAX;
+
+using vi = vector<int>;
+using vll = vector<ll>;
+using pii = pair<int, int>;
+
+typedef
+tree<
+  pair<ll,int>,
+  null_type,
+  less<pair<ll,int>>,
+  rb_tree_tag,
+  tree_order_statistics_node_update>
+ordered_set;
+
+namespace output {
+	void pr(int x) { cout << x; }
+	void pr(long x) { cout << x; }
+	void pr(ll x) { cout << x; }
+	void pr(unsigned x) { cout << x; }
+	void pr(unsigned long x) { cout << x; }
+	void pr(unsigned long long x) { cout << x; }
+	void pr(float x) { cout << x; }
+	void pr(double x) { cout << x; }
+	void pr(ld x) { cout << x; }
+	void pr(char x) { cout << x; }
+	void pr(const char* x) { cout << x; }
+	void pr(const string& x) { cout << x; }
+	void pr(bool x) { pr(x ? "true" : "false"); }
+	template<class T> void pr(const complex<T>& x) { cout << x; }
+	
+	template<class T1, class T2> void pr(const pair<T1,T2>& x);
+	template<class T> void pr(const T& x);
+	
+	template<class T, class... Ts> void pr(const T& t, const Ts&... ts) { 
+		pr(t); pr(ts...); 
+	}
+	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
+		pr("{",x.f,", ",x.s,"}"); 
+	}
+	template<class T> void pr(const T& x) { 
+		pr("{"); // const iterator needed for vector<bool>
+		bool fst = 1; for (const auto& a: x) pr(!fst?", ":"",a), fst = 0; 
+		pr("}");
+	}
+	
+	void print() { pr("\n"); } // print w/ spaces
+	template<class T, class... Ts> void print(const T& t, const Ts&... ts) { 
+		pr(t); if (sizeof...(ts)) pr(" "); print(ts...); 
+	}
+}
+
+using namespace output;
+
+int main() {
+    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	
+	ordered_set seenPrefs;
+	int N, K; cin >> N >> K;
+	vi arr (N);
+	F0R(i, N) {
+		cin >> arr[i]; arr[i] -= K;
+	}
+
+	ll ans = 0; 
+	ll curPref = 0;
+	F0R(i, N) {
+		seenPrefs.insert({curPref, i});
+		curPref += arr[i];
+		auto above = seenPrefs.upper_bound({curPref, N});
+		if (above == seenPrefs.begin()) continue;
+		--above;
+		ans += seenPrefs.order_of_key(*above) + 1;
+	}
+	print(ans);
+}
