@@ -5,6 +5,8 @@ using namespace std;
 #define F0R(i,a) FOR(i,0,a)
 #define ROF(i,a,b) for (int i = (b)-1; i >= (a); --i)
 #define R0F(i,a) ROF(i,0,a)
+#define f first
+#define s second
 
 using ll = long long;
 using ld = long double;
@@ -53,39 +55,47 @@ namespace output {
 
 using namespace output;
 
-int main() {
-    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	int N, H, M, K; cin >> N >> H >> M >> K;
-	vi allTrains;
+int N, M, Q;
+vector<pii> queries;
 
-	vi arr;
-	F0R(i, N) {
-		int h, m; cin >> h >> m;
-		allTrains.push_back(m % (M/2));
-		arr.push_back(m % (M/2));
-		arr.push_back(m % (M/2) + (M/2));
-	}
-	sort(arr.begin(), arr.end());
+bool valid(int q) {
+	vector<pii> removed (q);
+	F0R(i, q) removed[i] = queries[i];
+	sort(removed.begin(), removed.end(), [](const auto& lhs, const auto& rhs) {
+		return (lhs.second < rhs.second) || (lhs.second == rhs.second && lhs.first < rhs.first);
+	});
 
-
-	int l = 0;
-	int r = 0;
-	while (arr[l] + K > arr[r]) ++r;
-	
-	int ans = r - l - 1;
-	int ansInd = arr[l] % (M/2);
-
-	for (; l < N; ++l) {
-		while (arr[l] + K > arr[r]) ++r;		
-		if (r - l - 1 < ans) {
-			ans = r - l - 1;
-			ansInd = arr[l] % (M/2);
+	int bar = M;
+	for (pii x : removed) {
+		if (x.first % 2 == 0) {
+			bar = min(bar, x.first/2);
+		} else {
+			if (x.first/2 >= bar) return false;
 		}
 	}
-	print(ans, (ansInd + K) % (M/2));
-	F0R(i, N) {
-		if ((ansInd < allTrains[i] && ansInd + K > allTrains[i]) || (ansInd < allTrains[i] + M/2 && ansInd + K > allTrains[i] + M/2)) cout << i + 1 << " ";
+	return true;
+}
+
+int main() {
+	ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	cin >> N >> M >> Q;
+	queries.resize(Q);
+	F0R(q, Q) {
+		int i, j; cin >> i >> j; --i; --j;
+		queries[q] = {j, i};
 	}
-	cout << endl;
-	
+
+	int lo = 1;
+	int hi = Q;
+	while (lo < hi) {
+		int mid = lo + (hi - lo + 1) / 2;
+		if (valid(mid)) {
+			lo = mid;
+		} else {
+			hi = mid - 1;
+		}
+	}
+
+	F0R(i, lo) print("YES");
+	F0R(i, Q-lo) print("NO");
 }

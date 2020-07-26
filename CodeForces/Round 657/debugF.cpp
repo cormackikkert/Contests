@@ -53,39 +53,26 @@ namespace output {
 
 using namespace output;
 
+int N, M;
+vector<vector<bool>> grid;
+
+void drawGrid() {
+	F0R(i, 2*N) {
+		F0R(j, 2*M) cout << (grid[i][j] ? '#' : '.');
+		cout << endl;
+	}
+}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	int N, H, M, K; cin >> N >> H >> M >> K;
-	vi allTrains;
-
-	vi arr;
-	F0R(i, N) {
-		int h, m; cin >> h >> m;
-		allTrains.push_back(m % (M/2));
-		arr.push_back(m % (M/2));
-		arr.push_back(m % (M/2) + (M/2));
+	int Q; cin >> N >> M >> Q;
+	grid = vector<vector<bool>> (2*N, vector<bool> (2*M));
+	F0R(i, 2*N) F0R(j, 2*M) grid[i][j] = (i+j)%2;	
+	drawGrid();
+	F0R(q, Q) {
+		int i, j; cin >> i >> j; --i; --j;
+		grid[i][j] = true;
+		print("ITERATION: ", q);
+		drawGrid();
 	}
-	sort(arr.begin(), arr.end());
-
-
-	int l = 0;
-	int r = 0;
-	while (arr[l] + K > arr[r]) ++r;
-	
-	int ans = r - l - 1;
-	int ansInd = arr[l] % (M/2);
-
-	for (; l < N; ++l) {
-		while (arr[l] + K > arr[r]) ++r;		
-		if (r - l - 1 < ans) {
-			ans = r - l - 1;
-			ansInd = arr[l] % (M/2);
-		}
-	}
-	print(ans, (ansInd + K) % (M/2));
-	F0R(i, N) {
-		if ((ansInd < allTrains[i] && ansInd + K > allTrains[i]) || (ansInd < allTrains[i] + M/2 && ansInd + K > allTrains[i] + M/2)) cout << i + 1 << " ";
-	}
-	cout << endl;
-	
 }

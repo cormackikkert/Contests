@@ -55,37 +55,19 @@ using namespace output;
 
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	int N, H, M, K; cin >> N >> H >> M >> K;
-	vi allTrains;
-
-	vi arr;
-	F0R(i, N) {
-		int h, m; cin >> h >> m;
-		allTrains.push_back(m % (M/2));
-		arr.push_back(m % (M/2));
-		arr.push_back(m % (M/2) + (M/2));
-	}
-	sort(arr.begin(), arr.end());
-
-
-	int l = 0;
-	int r = 0;
-	while (arr[l] + K > arr[r]) ++r;
-	
-	int ans = r - l - 1;
-	int ansInd = arr[l] % (M/2);
-
-	for (; l < N; ++l) {
-		while (arr[l] + K > arr[r]) ++r;		
-		if (r - l - 1 < ans) {
-			ans = r - l - 1;
-			ansInd = arr[l] % (M/2);
+	int N, M; cin >> N >> M;
+	if (N&1) {
+		FOR(i, 1, M+1) print(i, N-i+1);
+	} else {
+		int even_pos = 1;
+		int odd_pos = N/2+1;
+		for (int s = M; s >= 1; --s) {
+			if (s&1) {
+				print(odd_pos, odd_pos + s); ++odd_pos;
+			} else {
+				print(even_pos, even_pos + s); ++even_pos;
+			}
 		}
 	}
-	print(ans, (ansInd + K) % (M/2));
-	F0R(i, N) {
-		if ((ansInd < allTrains[i] && ansInd + K > allTrains[i]) || (ansInd < allTrains[i] + M/2 && ansInd + K > allTrains[i] + M/2)) cout << i + 1 << " ";
-	}
-	cout << endl;
 	
 }

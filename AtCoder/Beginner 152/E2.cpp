@@ -5,6 +5,8 @@ using namespace std;
 #define F0R(i,a) FOR(i,0,a)
 #define ROF(i,a,b) for (int i = (b)-1; i >= (a); --i)
 #define R0F(i,a) ROF(i,0,a)
+#define f first
+#define s second
 
 using ll = long long;
 using ld = long double;
@@ -53,39 +55,87 @@ namespace output {
 
 using namespace output;
 
+ll MOD = 1e9+7;
+
+ll binpow(ll a, ll b) {
+    ll res = 1;
+    while (b > 0) {
+        if (b & 1)
+            res = res * a;
+        res %= MOD;
+        a = a * a;
+        a %= MOD;
+        b >>= 1;
+    }
+    return res;
+}
+
+ll inverse(ll n) {
+    return binpow(n, MOD-2);
+}
+
+vector<bool> is_prime;
+vi primes;
+void create_primes(int maxN) {
+	is_prime.assign(maxN + 1, true);
+	is_prime[0] = is_prime[1] = false;
+	for (int i = 2; i * i <= maxN; ++i) if (is_prime[i]) {
+		primes.push_back(i);
+		for (int j = i * i; j <= maxN; j += i) 
+			is_prime[j] = false;
+	}
+}
+
+map<int, int> lcmm;
+
+int maxN = 1e6;
+
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	int N, H, M, K; cin >> N >> H >> M >> K;
-	vi allTrains;
+	int N; cin >> N;
+	vi arr (N);
+	F0R(i, N) cin >> arr[i];
 
-	vi arr;
-	F0R(i, N) {
-		int h, m; cin >> h >> m;
-		allTrains.push_back(m % (M/2));
-		arr.push_back(m % (M/2));
-		arr.push_back(m % (M/2) + (M/2));
-	}
-	sort(arr.begin(), arr.end());
+	create_primes(maxN);
+	for (int x : arr) {
+		map<int, int> factorisation;
+		
+		for (int p : primes) {
+			while (x % p == 0) {
+				x /= p;
+				factorisation[p]++;
+			}
+		}
+		if (x != 1) factorisation[x]++;
 
-
-	int l = 0;
-	int r = 0;
-	while (arr[l] + K > arr[r]) ++r;
-	
-	int ans = r - l - 1;
-	int ansInd = arr[l] % (M/2);
-
-	for (; l < N; ++l) {
-		while (arr[l] + K > arr[r]) ++r;		
-		if (r - l - 1 < ans) {
-			ans = r - l - 1;
-			ansInd = arr[l] % (M/2);
+		for (pair<int, int> data : factorisation) {
+			lcmm[data.first] = max(lcmm[data.first], data.second);
 		}
 	}
-	print(ans, (ansInd + K) % (M/2));
-	F0R(i, N) {
-		if ((ansInd < allTrains[i] && ansInd + K > allTrains[i]) || (ansInd < allTrains[i] + M/2 && ansInd + K > allTrains[i] + M/2)) cout << i + 1 << " ";
+
+	ll lcm_num = 1;
+	for (pair<int, int> data : lcmm) lcm_num = (lcm_num * binpow(data.first, data.second)) % MOD;
+
+	ll total = 0;
+	for (int x : arr) {
+		map<int, int> factorisation;
+		
+		for (int p : primes) {
+			while (x % p == 0) {
+				x /= p;
+				factorisation[p]++;
+			}
+		}
+		if (x != 0) factorisation[x]++;
+
+		ll res = lcm_num;
+		for (pair<int, int> data : factorisation) {
+			res *= inverse(binpow(data.first, data.second));
+			res %= MOD;
+		}
+		total += res;
+		total %= MOD;
 	}
-	cout << endl;
-	
+	print(total);
 }

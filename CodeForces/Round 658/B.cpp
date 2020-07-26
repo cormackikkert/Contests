@@ -53,39 +53,27 @@ namespace output {
 
 using namespace output;
 
+void solve() {
+	int N; cin >> N;
+	vi arr (2*N);
+	F0R(i, 2*N) cin >> arr[i];
+	vi segs;
+	for (int i = 0; i < 2*N; ) {
+		int j = i;
+		while (j < 2*N && arr[j] <= arr[i]) ++j;
+		segs.push_back(j - i);
+		i = j;
+	}
+	vector<bool> canDo (2*N+1);
+	canDo[0] = true;
+	for (int seg : segs) {
+		R0F(i, 2*N+1) if (canDo[i]) canDo[i+seg] = true;
+	}
+	print(canDo[N] ? "YES" : "NO"); 
+}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	int N, H, M, K; cin >> N >> H >> M >> K;
-	vi allTrains;
-
-	vi arr;
-	F0R(i, N) {
-		int h, m; cin >> h >> m;
-		allTrains.push_back(m % (M/2));
-		arr.push_back(m % (M/2));
-		arr.push_back(m % (M/2) + (M/2));
-	}
-	sort(arr.begin(), arr.end());
-
-
-	int l = 0;
-	int r = 0;
-	while (arr[l] + K > arr[r]) ++r;
-	
-	int ans = r - l - 1;
-	int ansInd = arr[l] % (M/2);
-
-	for (; l < N; ++l) {
-		while (arr[l] + K > arr[r]) ++r;		
-		if (r - l - 1 < ans) {
-			ans = r - l - 1;
-			ansInd = arr[l] % (M/2);
-		}
-	}
-	print(ans, (ansInd + K) % (M/2));
-	F0R(i, N) {
-		if ((ansInd < allTrains[i] && ansInd + K > allTrains[i]) || (ansInd < allTrains[i] + M/2 && ansInd + K > allTrains[i] + M/2)) cout << i + 1 << " ";
-	}
-	cout << endl;
-	
+	int T; cin >> T;
+	F0R(i, T) solve();
 }

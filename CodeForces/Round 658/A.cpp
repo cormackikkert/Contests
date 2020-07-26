@@ -53,39 +53,34 @@ namespace output {
 
 using namespace output;
 
+void solve() {
+	int N; cin >> N;
+	
+	vector<bool> AS (N);
+	vector<bool> BS (N);
+
+	F0R(i, N) {char c; cin >> c; AS[i] = c == '1';}
+	F0R(i, N) {char c; cin >> c; BS[i] = c == '1';}
+
+	vi moves;
+
+	bool orig = AS[0];
+
+	for (int x = 0; x < N-1; ++x) {
+		int i = (x % 2 == 0) ? N-x/2-1 : x/2+1;
+		if (BS[N-x-1] == orig) moves.push_back(0);
+		moves.push_back(N-x-1);
+		orig = !AS[i]^(x%2);
+	}
+	if (orig != BS[0]) moves.push_back(0);
+
+	cout << moves.size() << " ";
+	for (int x : moves) cout << x + 1 << " ";
+	cout << endl;
+}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	int N, H, M, K; cin >> N >> H >> M >> K;
-	vi allTrains;
-
-	vi arr;
-	F0R(i, N) {
-		int h, m; cin >> h >> m;
-		allTrains.push_back(m % (M/2));
-		arr.push_back(m % (M/2));
-		arr.push_back(m % (M/2) + (M/2));
-	}
-	sort(arr.begin(), arr.end());
-
-
-	int l = 0;
-	int r = 0;
-	while (arr[l] + K > arr[r]) ++r;
-	
-	int ans = r - l - 1;
-	int ansInd = arr[l] % (M/2);
-
-	for (; l < N; ++l) {
-		while (arr[l] + K > arr[r]) ++r;		
-		if (r - l - 1 < ans) {
-			ans = r - l - 1;
-			ansInd = arr[l] % (M/2);
-		}
-	}
-	print(ans, (ansInd + K) % (M/2));
-	F0R(i, N) {
-		if ((ansInd < allTrains[i] && ansInd + K > allTrains[i]) || (ansInd < allTrains[i] + M/2 && ansInd + K > allTrains[i] + M/2)) cout << i + 1 << " ";
-	}
-	cout << endl;
-	
+	int T; cin >> T;
+	F0R(i, T) solve();
 }

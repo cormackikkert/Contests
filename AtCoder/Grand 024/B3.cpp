@@ -53,39 +53,30 @@ namespace output {
 
 using namespace output;
 
+int N;
+vi arr;
 int main() {
-    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	int N, H, M, K; cin >> N >> H >> M >> K;
-	vi allTrains;
+	ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	cin >> N;
+	arr.resize(N);
+	F0R(i, N) cin >> arr[i];
 
-	vi arr;
-	F0R(i, N) {
-		int h, m; cin >> h >> m;
-		allTrains.push_back(m % (M/2));
-		arr.push_back(m % (M/2));
-		arr.push_back(m % (M/2) + (M/2));
-	}
-	sort(arr.begin(), arr.end());
+	vi perm (N);
+	F0R(i, N) perm[i] = i;
+	sort(perm.begin(), perm.end(), [](const auto& lhs, const auto& rhs) {
+		return arr[lhs] < arr[rhs];
+	});
 
-
-	int l = 0;
-	int r = 0;
-	while (arr[l] + K > arr[r]) ++r;
-	
-	int ans = r - l - 1;
-	int ansInd = arr[l] % (M/2);
-
-	for (; l < N; ++l) {
-		while (arr[l] + K > arr[r]) ++r;		
-		if (r - l - 1 < ans) {
-			ans = r - l - 1;
-			ansInd = arr[l] % (M/2);
+	int best = N;
+	int last = -1;
+	int size = 0;
+	for (int i : perm) {
+		if (i > last) ++size;
+		else {
+			size = 1;
 		}
+		last = i;
+		best = min(best, N - size);
 	}
-	print(ans, (ansInd + K) % (M/2));
-	F0R(i, N) {
-		if ((ansInd < allTrains[i] && ansInd + K > allTrains[i]) || (ansInd < allTrains[i] + M/2 && ansInd + K > allTrains[i] + M/2)) cout << i + 1 << " ";
-	}
-	cout << endl;
-	
+	print(best);
 }

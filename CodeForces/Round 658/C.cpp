@@ -53,39 +53,86 @@ namespace output {
 
 using namespace output;
 
-int main() {
-    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	int N, H, M, K; cin >> N >> H >> M >> K;
-	vi allTrains;
+int N, X, Y;
+vi arr;
 
-	vi arr;
+int count(int occ) {
+	map<int, int> cum; 
+	int use = 0;
 	F0R(i, N) {
-		int h, m; cin >> h >> m;
-		allTrains.push_back(m % (M/2));
-		arr.push_back(m % (M/2));
-		arr.push_back(m % (M/2) + (M/2));
+		cum[arr[i]]++;
+		if (cum[arr[i]] <= occ) ++use;
 	}
-	sort(arr.begin(), arr.end());
+	return use;
+}
 
-
-	int l = 0;
-	int r = 0;
-	while (arr[l] + K > arr[r]) ++r;
+void solve() {
+	cin >> N >> X >> Y;
 	
-	int ans = r - l - 1;
-	int ansInd = arr[l] % (M/2);
+	arr.resize(N);
+	F0R(i, N) cin >> arr[i];
 
-	for (; l < N; ++l) {
-		while (arr[l] + K > arr[r]) ++r;		
-		if (r - l - 1 < ans) {
-			ans = r - l - 1;
-			ansInd = arr[l] % (M/2);
+	if (Y < X) {print("NO"); return;}
+
+	int lo = 0;
+	int hi = N;
+	while (lo < hi) {
+		int mid = lo + (hi - lo) / 2;
+		if (count(mid) >= N - X) {
+			hi = mid;
+		} else {
+			lo = mid + 1;
 		}
 	}
-	print(ans, (ansInd + K) % (M/2));
+
+	int rem = N - X;
+	if (rem - max(0, 2*lo-rem) < Y - X) {print("NO"); return;}
+
+	vector<bool> use (N+2);
+	F0R(i, N) use[arr[i]] = true;
+	int empty = 1;
+	while (use[empty]) ++empty;
+
+	vi alice (N, -1);
+	map<int, int> cum;
+
+	vi perm;
+
 	F0R(i, N) {
-		if ((ansInd < allTrains[i] && ansInd + K > allTrains[i]) || (ansInd < allTrains[i] + M/2 && ansInd + K > allTrains[i] + M/2)) cout << i + 1 << " ";
+		cum[arr[i]]++;
+		if (cum[arr[i]] <= lo && perm.size() < N - X) perm.push_back(i);
 	}
+
+	sort(perm.begin(), perm.end(), [](const auto& lhs, const auto& rhs) {
+		return arr[lhs] < arr[rhs];
+	});
+
+	int cnt = Y - X;
+	F0R(i, perm.size()) {
+		if (cnt && (arr[perm[i]] != arr[perm[(i+lo) % perm.size()]])) {
+			alice[perm[i]] = arr[perm[(i + lo) % perm.size()]];
+			--cnt;
+		}
+		else 
+			alice[perm[i]] = empty;
+	}
+
+	F0R(i, N) if (alice[i] == -1) alice[i] = arr[i];
+	print("YES");
+	for (int x : alice) cout << x << " ";
 	cout << endl;
-	
 }
+
+int main() {
+    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	int T; cin >> T;
+	F0R(i, T) solve();
+}
+
+/*
+1
+6 1 3
+3 1 1 1 1 1
+---
+1 2 2 3 2 1
+*/

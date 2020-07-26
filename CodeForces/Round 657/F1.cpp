@@ -55,37 +55,29 @@ using namespace output;
 
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	int N, H, M, K; cin >> N >> H >> M >> K;
-	vi allTrains;
-
-	vi arr;
-	F0R(i, N) {
-		int h, m; cin >> h >> m;
-		allTrains.push_back(m % (M/2));
-		arr.push_back(m % (M/2));
-		arr.push_back(m % (M/2) + (M/2));
-	}
-	sort(arr.begin(), arr.end());
-
-
-	int l = 0;
-	int r = 0;
-	while (arr[l] + K > arr[r]) ++r;
-	
-	int ans = r - l - 1;
-	int ansInd = arr[l] % (M/2);
-
-	for (; l < N; ++l) {
-		while (arr[l] + K > arr[r]) ++r;		
-		if (r - l - 1 < ans) {
-			ans = r - l - 1;
-			ansInd = arr[l] % (M/2);
+	int N, M, Q; cin >> N >> M >> Q;
+	vi rowD (N, 2*M);
+	vi rowU (N, -1);
+	vi colD (M, 2*N);
+	vi colU (M, -1);
+	vector<vi> block (N, vi (M));
+	bool works = true;
+	F0R(q, Q) {
+		int i, j; cin >> i >> j; --i; --j;
+		// (i, j) = (row, col)
+		if (i % 2 == 0) {
+			// D
+			i /= 2; j /= 2;
+			rowD[i] = min(rowD[i], j);
+			colD[j] = min(colD[j], i);
+		} else {
+			// U
+			i /= 2; j /= 2;
+			rowU[i] = max(rowU[i], j);
+			colU[j] = max(colU[j], i);
 		}
-	}
-	print(ans, (ansInd + K) % (M/2));
-	F0R(i, N) {
-		if ((ansInd < allTrains[i] && ansInd + K > allTrains[i]) || (ansInd < allTrains[i] + M/2 && ansInd + K > allTrains[i] + M/2)) cout << i + 1 << " ";
-	}
-	cout << endl;
-	
+		block[i][j]++;
+		if ((rowD[i] < rowU[i]) || (colD[j] < colU[j]) || block[i][j] >= 2) works = false;
+		print(works ? "YES" : "NO");
+	} 
 }
