@@ -53,70 +53,53 @@ namespace output {
 
 using namespace output;
 
-int N, K, L;
-vector<vi> cGraph;
-vector<vi> tGraph;
+template<class T> struct Seg { 
+	const T ID = 0; // comb(ID,b) must equal b
+	T combine(T a, T b) { return a+b; } 
+	int n; vector<T> seg;
+	void init(int _n) { n = _n; seg.assign(2*n,ID);}
 
-vi cRep;
-vi tRep;
-
-vector<bool> cSeen;
-vector<bool> tSeen;
-
-vi cSize;
-vi tSize;
-vi bSize;
-
-vi tFound;
-
-void cdfs(int cur, int rep) {
-	cRep[cur] = rep;
-	for (int n : cGraph[cur]) if (!cSeen[n]) {
-		cSeen[n] = true;
-		cdfs(n, rep);
+	void update(int p, T value) {	// set value at position p
+		seg[p += n] += value;
+		for (p /= 2; p; p /= 2) seg[p] = combine(seg[2*p], seg[2*p+1]);
 	}
-}
-
-map<int, int> occ;
-void tdfs(int cur, int rep) {
-	tFound.push_back(cur);
-	occ[cRep[cur]]++;
-	for (int n : tGraph[cur]) if (!tSeen[n]) {
-		tSeen[n] = true;
-		tdfs(n, rep);
+    
+	T query(int l, int r) {	 // sum on interval [l, r]
+		T ra = ID, rb = ID; 
+		for (l += n, r += n+1; l < r; l /= 2, r /= 2) {
+			if (l&1) ra = combine(ra,seg[l++]);
+			if (r&1) rb = combine(seg[--r],rb);
+		}
+		return combine(ra,rb);
 	}
-}
+};
+
 int main() {
-    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> N >> K >> L;
+    // ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	int N, Q; cin >> N >> Q;
 
-	cGraph.resize(N); tGraph.resize(N);
-	cRep.resize(N); tRep.resize(N); cSeen.resize(N); tSeen.resize(N); cSize.resize(N); tSize.resize(N); bSize.resize(N);
+	Seg<int> seg; seg.init(N+1);
+	vi cur (N+1, N);
 
-	F0R(i, K) {
-		int a, b; cin >> a >> b; --a; --b;
-		cGraph[a].push_back(b);
-		cGraph[b].push_back(a);
-	}
-	F0R(i, L) {
-		int a, b; cin >> a >> b; --a; --b;
-		tGraph[a].push_back(b);
-		tGraph[b].push_back(a);
+	vi cols (N);
+	F0R(i, N) cin >> cols[i];
+
+	vector<vector<pii>> queries (N);
+	F0R(i, Q) {
+		int l, r; cin >> l >> r; --l; --r;
+		queries[l].push_back({r, i});
 	}
 
-	F0R(i, N) if (!cSeen[i]) {
-		cSeen[i] = true;
-		cdfs(i, i);
-	}
-
-	F0R(i, N) if (!tSeen[i]) {
-		occ = map<int, int> ();
-		tFound = vi ();
-		tSeen[i] = true;
-		tdfs(i, i);
-		for (int x : tFound) {
-			bSize[x] = occ[cRep[x]];
+	vi ans (Q);
+	R0F(l, N) {
+		seg.update(cur[cols[l]], -1);
+		seg.update(l, 1);
+		cur[cols[l]] = l;
+		for (pii q : queries[l]) {
+			int r = q.first;
+			int i = q.second;
+			ans[i] = seg.query(l, r);
 		}
 	}
-	F0R(i, N) cout << bSize[i] << " ";
+	F0R(i, Q) print(ans[i]);
 }

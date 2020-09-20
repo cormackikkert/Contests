@@ -53,70 +53,34 @@ namespace output {
 
 using namespace output;
 
-int N, K, L;
-vector<vi> cGraph;
-vector<vi> tGraph;
-
-vi cRep;
-vi tRep;
-
-vector<bool> cSeen;
-vector<bool> tSeen;
-
-vi cSize;
-vi tSize;
-vi bSize;
-
-vi tFound;
-
-void cdfs(int cur, int rep) {
-	cRep[cur] = rep;
-	for (int n : cGraph[cur]) if (!cSeen[n]) {
-		cSeen[n] = true;
-		cdfs(n, rep);
-	}
-}
-
-map<int, int> occ;
-void tdfs(int cur, int rep) {
-	tFound.push_back(cur);
-	occ[cRep[cur]]++;
-	for (int n : tGraph[cur]) if (!tSeen[n]) {
-		tSeen[n] = true;
-		tdfs(n, rep);
-	}
-}
+vi PS;
+vi HS;
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> N >> K >> L;
-
-	cGraph.resize(N); tGraph.resize(N);
-	cRep.resize(N); tRep.resize(N); cSeen.resize(N); tSeen.resize(N); cSize.resize(N); tSize.resize(N); bSize.resize(N);
-
-	F0R(i, K) {
-		int a, b; cin >> a >> b; --a; --b;
-		cGraph[a].push_back(b);
-		cGraph[b].push_back(a);
-	}
-	F0R(i, L) {
-		int a, b; cin >> a >> b; --a; --b;
-		tGraph[a].push_back(b);
-		tGraph[b].push_back(a);
+	int N; cin >> N;
+	PS.resize(N);
+	HS.resize(N);
+	F0R(i, N) {
+		int h, p; cin >> h >> p;
+		HS[i] = h;
+		PS[i] = p;
 	}
 
-	F0R(i, N) if (!cSeen[i]) {
-		cSeen[i] = true;
-		cdfs(i, i);
-	}
+	vi perm (N);
+	F0R(i, N) perm[i] = i;
+	sort(perm.begin(), perm.end(), [] (const auto& lhs, const auto& rhs) {
+		return HS[lhs] + PS[lhs] < HS[rhs] + PS[rhs];
+	});
 
-	F0R(i, N) if (!tSeen[i]) {
-		occ = map<int, int> ();
-		tFound = vi ();
-		tSeen[i] = true;
-		tdfs(i, i);
-		for (int x : tFound) {
-			bSize[x] = occ[cRep[x]];
+	vll dp (N+1, INF); // smallest height using N people 
+	dp[0] = 0;
+	for (int p = 0; p < N; ++p) {
+		int i = perm[p];
+		for (int s = N; s >= 0; --s) {
+			if (dp[s] <= HS[i]) dp[s+1] = min(dp[s+1], dp[s] + PS[i]);
 		}
 	}
-	F0R(i, N) cout << bSize[i] << " ";
+	int ans = 0;
+	while (ans <= N && dp[ans] != INF) ++ans;
+	print(ans-1);
 }

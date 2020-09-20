@@ -53,70 +53,54 @@ namespace output {
 
 using namespace output;
 
-int N, K, L;
-vector<vi> cGraph;
-vector<vi> tGraph;
+int N;
+vi sz;
+vector<vi> graph;
+vi centroids;
 
-vi cRep;
-vi tRep;
-
-vector<bool> cSeen;
-vector<bool> tSeen;
-
-vi cSize;
-vi tSize;
-vi bSize;
-
-vi tFound;
-
-void cdfs(int cur, int rep) {
-	cRep[cur] = rep;
-	for (int n : cGraph[cur]) if (!cSeen[n]) {
-		cSeen[n] = true;
-		cdfs(n, rep);
+void dfs_centroid(int cur, int par) {
+	sz[cur] = 1;
+	bool is_centroid = true;
+	for (int n : graph[cur]) if (n != par) {
+		dfs_centroid(n, cur);
+		sz[cur] += sz[n];
+		if (sz[n] > N/2) is_centroid = false;
 	}
+	if (N - sz[cur] > N/2) is_centroid = false;
+	if (is_centroid) centroids.push_back(cur);
 }
 
-map<int, int> occ;
-void tdfs(int cur, int rep) {
-	tFound.push_back(cur);
-	occ[cRep[cur]]++;
-	for (int n : tGraph[cur]) if (!tSeen[n]) {
-		tSeen[n] = true;
-		tdfs(n, rep);
+int leaf = 0;
+void find_leaf(int cur, int par) {
+	leaf = cur;
+	for (int n : graph[cur]) if (n != par) find_leaf(n, cur);
+}
+
+void solve () {
+	cin >> N;
+	sz = vi (N);
+	centroids = vi ();
+	graph = vector<vi> (N);
+	F0R(i, N-1) {
+		int a, b; cin >> a >> b; --a; --b;
+		graph[a].push_back(b);
+		graph[b].push_back(a);
 	}
+
+	dfs_centroid(0, -1);
+
+	if (centroids.size() == 1) {
+		print(1, 1 + graph[0][0]);
+		print(1, 1 + graph[0][0]);
+	} else {
+		find_leaf(centroids[0], centroids[1]);
+		print(leaf + 1, graph[leaf][0] + 1);
+		print(leaf + 1, centroids[1] + 1);
+	}
+	dfs_centroid(0, -1);
 }
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> N >> K >> L;
-
-	cGraph.resize(N); tGraph.resize(N);
-	cRep.resize(N); tRep.resize(N); cSeen.resize(N); tSeen.resize(N); cSize.resize(N); tSize.resize(N); bSize.resize(N);
-
-	F0R(i, K) {
-		int a, b; cin >> a >> b; --a; --b;
-		cGraph[a].push_back(b);
-		cGraph[b].push_back(a);
-	}
-	F0R(i, L) {
-		int a, b; cin >> a >> b; --a; --b;
-		tGraph[a].push_back(b);
-		tGraph[b].push_back(a);
-	}
-
-	F0R(i, N) if (!cSeen[i]) {
-		cSeen[i] = true;
-		cdfs(i, i);
-	}
-
-	F0R(i, N) if (!tSeen[i]) {
-		occ = map<int, int> ();
-		tFound = vi ();
-		tSeen[i] = true;
-		tdfs(i, i);
-		for (int x : tFound) {
-			bSize[x] = occ[cRep[x]];
-		}
-	}
-	F0R(i, N) cout << bSize[i] << " ";
+	int T; cin >> T;
+	F0R(i, T) solve();
 }

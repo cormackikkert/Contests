@@ -53,70 +53,32 @@ namespace output {
 
 using namespace output;
 
-int N, K, L;
-vector<vi> cGraph;
-vector<vi> tGraph;
+int N, K;
+vi logs;
 
-vi cRep;
-vi tRep;
-
-vector<bool> cSeen;
-vector<bool> tSeen;
-
-vi cSize;
-vi tSize;
-vi bSize;
-
-vi tFound;
-
-void cdfs(int cur, int rep) {
-	cRep[cur] = rep;
-	for (int n : cGraph[cur]) if (!cSeen[n]) {
-		cSeen[n] = true;
-		cdfs(n, rep);
+bool check(int x) {
+	int cnt = 0;
+	for (int p : logs) {
+		cnt += (p - 1) / x;
+		if (cnt > K) return false;
 	}
-}
-
-map<int, int> occ;
-void tdfs(int cur, int rep) {
-	tFound.push_back(cur);
-	occ[cRep[cur]]++;
-	for (int n : tGraph[cur]) if (!tSeen[n]) {
-		tSeen[n] = true;
-		tdfs(n, rep);
-	}
+	return true;
 }
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> N >> K >> L;
+	cin >> N >> K;
+	logs.resize(N);
+	F0R(i, N) cin >> logs[i];
 
-	cGraph.resize(N); tGraph.resize(N);
-	cRep.resize(N); tRep.resize(N); cSeen.resize(N); tSeen.resize(N); cSize.resize(N); tSize.resize(N); bSize.resize(N);
-
-	F0R(i, K) {
-		int a, b; cin >> a >> b; --a; --b;
-		cGraph[a].push_back(b);
-		cGraph[b].push_back(a);
-	}
-	F0R(i, L) {
-		int a, b; cin >> a >> b; --a; --b;
-		tGraph[a].push_back(b);
-		tGraph[b].push_back(a);
-	}
-
-	F0R(i, N) if (!cSeen[i]) {
-		cSeen[i] = true;
-		cdfs(i, i);
-	}
-
-	F0R(i, N) if (!tSeen[i]) {
-		occ = map<int, int> ();
-		tFound = vi ();
-		tSeen[i] = true;
-		tdfs(i, i);
-		for (int x : tFound) {
-			bSize[x] = occ[cRep[x]];
+	int lo = 1;
+	int hi = 1e9+5;
+	while (lo < hi) {
+		int mid = lo + (hi - lo) / 2;
+		if (check(mid)) {
+			hi = mid;
+		} else {
+			lo = mid + 1;
 		}
 	}
-	F0R(i, N) cout << bSize[i] << " ";
+	print(lo);
 }

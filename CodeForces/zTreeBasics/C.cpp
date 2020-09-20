@@ -53,70 +53,73 @@ namespace output {
 
 using namespace output;
 
-int N, K, L;
-vector<vi> cGraph;
-vector<vi> tGraph;
+int N;
+vector<vi> graph;
+vector<vi> lift;
+vi depth;
 
-vi cRep;
-vi tRep;
-
-vector<bool> cSeen;
-vector<bool> tSeen;
-
-vi cSize;
-vi tSize;
-vi bSize;
-
-vi tFound;
-
-void cdfs(int cur, int rep) {
-	cRep[cur] = rep;
-	for (int n : cGraph[cur]) if (!cSeen[n]) {
-		cSeen[n] = true;
-		cdfs(n, rep);
-	}
+void dfs(int cur, int par, int d=0) {
+	depth[cur] = d;
+	lift[cur][0] = (par == -1) ? cur : par;
+	for (int n : graph[cur]) if (n != par) dfs(n, cur, d+1);
 }
 
-map<int, int> occ;
-void tdfs(int cur, int rep) {
-	tFound.push_back(cur);
-	occ[cRep[cur]]++;
-	for (int n : tGraph[cur]) if (!tSeen[n]) {
-		tSeen[n] = true;
-		tdfs(n, rep);
+int move_up(int a, int k) {
+	for (int i = 0; i <= 30; ++i) if (k & (1 << i)) {
+		a = lift[a][i];
 	}
+	return a;
 }
-int main() {
-    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> N >> K >> L;
 
-	cGraph.resize(N); tGraph.resize(N);
-	cRep.resize(N); tRep.resize(N); cSeen.resize(N); tSeen.resize(N); cSize.resize(N); tSize.resize(N); bSize.resize(N);
+int lca(int a, int b) {
+	if (depth[b] > depth[a]) swap(a, b);
+	a = move_up(a, depth[a]-depth[b]);
+	if (a == b) return a;
 
-	F0R(i, K) {
-		int a, b; cin >> a >> b; --a; --b;
-		cGraph[a].push_back(b);
-		cGraph[b].push_back(a);
-	}
-	F0R(i, L) {
-		int a, b; cin >> a >> b; --a; --b;
-		tGraph[a].push_back(b);
-		tGraph[b].push_back(a);
-	}
-
-	F0R(i, N) if (!cSeen[i]) {
-		cSeen[i] = true;
-		cdfs(i, i);
-	}
-
-	F0R(i, N) if (!tSeen[i]) {
-		occ = map<int, int> ();
-		tFound = vi ();
-		tSeen[i] = true;
-		tdfs(i, i);
-		for (int x : tFound) {
-			bSize[x] = occ[cRep[x]];
+	for (int i = 30; i >= 0; --i) {
+		if (lift[a][i] != lift[b][i]) {
+			a = lift[a][i];
+			b = lift[b][i];
 		}
 	}
-	F0R(i, N) cout << bSize[i] << " ";
+	return lift[a][0];
+}
+
+
+
+int main() {
+    ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	cin >> N;
+
+	graph.resize(N);
+	depth.resize(N);
+
+	F0R(i, N-1) {
+		int a, b; cin >> a >> b; --a; --b;
+		graph[a].push_back(b);
+		graph[b].push_back(a);
+	}
+	lift = vector<vi> (N, vi (31));
+
+	dfs(0, -1);
+	// binary lift
+	
+	for (int i = 1; i <= 30; ++i) {
+		for (int n = 0; n < N; ++n) {
+			lift[n][i] = lift[lift[n][i-1]][i-1];
+		}
+	}
+
+	int Q; cin >> Q;
+	F0R(i, Q) {
+		int a, b, c; cin >> a >> b >> c; --a; --b;
+		int l = lca(a, b);
+		
+		c = min(c, depth[a] + depth[b] - 2 * depth[l]);
+		if (depth[a] - depth[l] >= c) {
+			print(move_up(a, c) + 1);
+		} else {
+			print(move_up(b, (depth[b] - depth[l]) - (c - (depth[a] - depth[l]))) + 1);
+		}
+	}
 }

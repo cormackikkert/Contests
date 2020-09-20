@@ -53,70 +53,38 @@ namespace output {
 
 using namespace output;
 
-int N, K, L;
-vector<vi> cGraph;
-vector<vi> tGraph;
-
-vi cRep;
-vi tRep;
-
-vector<bool> cSeen;
-vector<bool> tSeen;
-
-vi cSize;
-vi tSize;
-vi bSize;
-
-vi tFound;
-
-void cdfs(int cur, int rep) {
-	cRep[cur] = rep;
-	for (int n : cGraph[cur]) if (!cSeen[n]) {
-		cSeen[n] = true;
-		cdfs(n, rep);
-	}
+ll MOD = 998244353;
+ll binpow(ll a, ll b) {
+    ll res = 1;
+    while (b > 0) {
+        if (b & 1)
+            res = res * a;
+        res %= MOD;
+        a = a * a;
+        a %= MOD;
+        b >>= 1;
+    }
+    return res;
 }
 
-map<int, int> occ;
-void tdfs(int cur, int rep) {
-	tFound.push_back(cur);
-	occ[cRep[cur]]++;
-	for (int n : tGraph[cur]) if (!tSeen[n]) {
-		tSeen[n] = true;
-		tdfs(n, rep);
-	}
-}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> N >> K >> L;
+	ll A, B; cin >> A >> B;
+	ll C, D; cin >> C >> D;
 
-	cGraph.resize(N); tGraph.resize(N);
-	cRep.resize(N); tRep.resize(N); cSeen.resize(N); tSeen.resize(N); cSize.resize(N); tSize.resize(N); bSize.resize(N);
-
-	F0R(i, K) {
-		int a, b; cin >> a >> b; --a; --b;
-		cGraph[a].push_back(b);
-		cGraph[b].push_back(a);
-	}
-	F0R(i, L) {
-		int a, b; cin >> a >> b; --a; --b;
-		tGraph[a].push_back(b);
-		tGraph[b].push_back(a);
-	}
-
-	F0R(i, N) if (!cSeen[i]) {
-		cSeen[i] = true;
-		cdfs(i, i);
-	}
-
-	F0R(i, N) if (!tSeen[i]) {
-		occ = map<int, int> ();
-		tFound = vi ();
-		tSeen[i] = true;
-		tdfs(i, i);
-		for (int x : tFound) {
-			bSize[x] = occ[cRep[x]];
+	vector<vll> dp (C+1, vll (D+1));
+	F0R(r, C+1) {
+		F0R(c, D+1) {
+			if (r < A || c < B) dp[r][c] = 0;
+			else if (r == A && c == B) dp[r][c] = 1;
+			else if (r == A) dp[r][c] = r * dp[r][c-1];
+			else if (c == B) dp[r][c] = c * dp[r-1][c];
+			else {
+				dp[r][c] = c * dp[r-1][c] % MOD + r * dp[r][c-1] % MOD - (r-1) * (c-1) * dp[r-1][c-1] % MOD;
+			}
+			dp[r][c] = (dp[r][c] % MOD + MOD) % MOD;
 		}
 	}
-	F0R(i, N) cout << bSize[i] << " ";
+	print(dp[C][D]);
 }

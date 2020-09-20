@@ -53,70 +53,49 @@ namespace output {
 
 using namespace output;
 
-int N, K, L;
-vector<vi> cGraph;
-vector<vi> tGraph;
+vi DX = {0, 0, -1, 1};
+vi DY = {-1, 1, 0, 0};
 
-vi cRep;
-vi tRep;
-
-vector<bool> cSeen;
-vector<bool> tSeen;
-
-vi cSize;
-vi tSize;
-vi bSize;
-
-vi tFound;
-
-void cdfs(int cur, int rep) {
-	cRep[cur] = rep;
-	for (int n : cGraph[cur]) if (!cSeen[n]) {
-		cSeen[n] = true;
-		cdfs(n, rep);
-	}
-}
-
-map<int, int> occ;
-void tdfs(int cur, int rep) {
-	tFound.push_back(cur);
-	occ[cRep[cur]]++;
-	for (int n : tGraph[cur]) if (!tSeen[n]) {
-		tSeen[n] = true;
-		tdfs(n, rep);
-	}
-}
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> N >> K >> L;
+	int H, W; cin >> H >> W;
+	int CH, CW; cin >> CH >> CW; --CH; --CW;
+	int DH, DW; cin >> DH >> DW; --DH; --DW;
+	vector<vector<bool>> grid (H, vector<bool> (W));
+	vector<vector<int>> dist (H, vector<int> (W, 1e9));
 
-	cGraph.resize(N); tGraph.resize(N);
-	cRep.resize(N); tRep.resize(N); cSeen.resize(N); tSeen.resize(N); cSize.resize(N); tSize.resize(N); bSize.resize(N);
-
-	F0R(i, K) {
-		int a, b; cin >> a >> b; --a; --b;
-		cGraph[a].push_back(b);
-		cGraph[b].push_back(a);
+	F0R(i, H) F0R(j, W) {
+		char c; cin >> c;
+		grid[i][j] = c == '#';
 	}
-	F0R(i, L) {
-		int a, b; cin >> a >> b; --a; --b;
-		tGraph[a].push_back(b);
-		tGraph[b].push_back(a);
-	}
-
-	F0R(i, N) if (!cSeen[i]) {
-		cSeen[i] = true;
-		cdfs(i, i);
-	}
-
-	F0R(i, N) if (!tSeen[i]) {
-		occ = map<int, int> ();
-		tFound = vi ();
-		tSeen[i] = true;
-		tdfs(i, i);
-		for (int x : tFound) {
-			bSize[x] = occ[cRep[x]];
+	dist[CH][CW] = 0;
+	deque<pair<int, int>> q;
+	q.push_front({CH, CW});
+	while (!q.empty()) {
+		pair<int, int> pos = q.front();
+		int ph = pos.first;
+		int pw = pos.second;
+		q.pop_front();
+		F0R(i, 4) {
+			int nh = ph + DX[i];
+			int nw = pw + DY[i];
+			if (0 <= nh && nh < H && 0 <= nw && nw < W && !grid[nh][nw]) {
+				if (dist[ph][pw] < dist[nh][nw]) {
+					dist[nh][nw] = dist[ph][pw];
+					q.push_front({nh, nw});
+				}
+			}
+		}
+		for (int nh = ph - 2; nh <= ph + 2; ++nh) {
+			for (int nw = pw - 2; nw <= pw + 2; ++nw) {
+				if (0 <= nh && nh < H && 0 <= nw && nw < W && !grid[nh][nw]) {
+					if (dist[ph][pw] + 1 < dist[nh][nw]) {
+						dist[nh][nw] = dist[ph][pw] + 1;
+						q.push_back({nh, nw});
+					}
+				}
+			}
 		}
 	}
-	F0R(i, N) cout << bSize[i] << " ";
+	print((dist[DH][DW] == (int) 1e9) ? -1 : dist[DH][DW]);
 }

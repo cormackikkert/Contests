@@ -37,7 +37,7 @@ namespace output {
 		pr(t); pr(ts...); 
 	}
 	template<class T1, class T2> void pr(const pair<T1,T2>& x) { 
-		pr("{",x.f,", ",x.s,"}"); 
+		pr("{",x.first,", ",x.second,"}"); 
 	}
 	template<class T> void pr(const T& x) { 
 		pr("{"); // const iterator needed for vector<bool>
@@ -53,70 +53,67 @@ namespace output {
 
 using namespace output;
 
-int N, K, L;
-vector<vi> cGraph;
-vector<vi> tGraph;
+int block_size = 710;
+vi arr;
 
-vi cRep;
-vi tRep;
+int cur = 0;
+int occ [500100] = {0};
 
-vector<bool> cSeen;
-vector<bool> tSeen;
-
-vi cSize;
-vi tSize;
-vi bSize;
-
-vi tFound;
-
-void cdfs(int cur, int rep) {
-	cRep[cur] = rep;
-	for (int n : cGraph[cur]) if (!cSeen[n]) {
-		cSeen[n] = true;
-		cdfs(n, rep);
-	}
+inline void add(int val) {
+	if (occ[val] == 0) ++cur;
+	occ[val]++;
 }
 
-map<int, int> occ;
-void tdfs(int cur, int rep) {
-	tFound.push_back(cur);
-	occ[cRep[cur]]++;
-	for (int n : tGraph[cur]) if (!tSeen[n]) {
-		tSeen[n] = true;
-		tdfs(n, rep);
-	}
+inline void remove(int val) {
+	if (occ[val] == 1) --cur;
+	occ[val]--;
 }
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> N >> K >> L;
 
-	cGraph.resize(N); tGraph.resize(N);
-	cRep.resize(N); tRep.resize(N); cSeen.resize(N); tSeen.resize(N); cSize.resize(N); tSize.resize(N); bSize.resize(N);
-
-	F0R(i, K) {
-		int a, b; cin >> a >> b; --a; --b;
-		cGraph[a].push_back(b);
-		cGraph[b].push_back(a);
-	}
-	F0R(i, L) {
-		int a, b; cin >> a >> b; --a; --b;
-		tGraph[a].push_back(b);
-		tGraph[b].push_back(a);
+	int N, T; cin >> N >> T;
+	arr.resize(N);
+	F0R(i, N) cin >> arr[i];
+	vector<pair<pii, int>> queries (T);
+	F0R(i, T) {
+		int l, r; cin >> l >> r; --l; --r;
+		queries[i] = {{l, r}, i};
 	}
 
-	F0R(i, N) if (!cSeen[i]) {
-		cSeen[i] = true;
-		cdfs(i, i);
-	}
+	sort(queries.begin(), queries.end(), [] (const auto& lhs, const auto& rhs) {
+		pii q1 = lhs.first;
+		pii q2 = rhs.first;
+		if ((q1.first / block_size) != (q2.first / block_size)) 
+			return (q1.first / block_size) < (q2.first / block_size);
+		return q1.second < q2.second;
+	});
+	
+	vi ans (T);
 
-	F0R(i, N) if (!tSeen[i]) {
-		occ = map<int, int> ();
-		tFound = vi ();
-		tSeen[i] = true;
-		tdfs(i, i);
-		for (int x : tFound) {
-			bSize[x] = occ[cRep[x]];
+	int curL = 0;
+	int curR = 0;
+	add(arr[0]);
+	for (pair<pii, int> qu : queries) {
+		pii q = qu.first;
+		
+		while (curL < q.first) {
+			remove(arr[curL]);
+			++curL;
 		}
+		while (curL > q.first) {
+			--curL;
+			add(arr[curL]);
+		}
+		while (curR < q.second) {
+			++curR;
+			add(arr[curR]);
+		}
+		while (curR > q.second) {
+			remove(arr[curR]);
+			--curR;
+		}
+		ans[qu.second] = cur;
 	}
-	F0R(i, N) cout << bSize[i] << " ";
+	for (int x : ans) print(x);
 }

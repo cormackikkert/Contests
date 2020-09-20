@@ -53,70 +53,57 @@ namespace output {
 
 using namespace output;
 
-int N, K, L;
-vector<vi> cGraph;
-vector<vi> tGraph;
+int N;
+vector<vi> graph;
 
-vi cRep;
-vi tRep;
+int diam = 0;
+int diameter(int cur, int par) {
+	vi heights;
+	for (int n : graph[cur]) if (n != par) {
+		heights.push_back(diameter(n, cur));
+	}
+	sort(heights.rbegin(), heights.rend());
+	if (heights.size() >= 2) diam = max(diam, 2+heights[0] + heights[1]);
+	if (heights.size() == 0) return 0;
+	diam = max(diam, 1 + heights[0]);
+	return 1 + heights[0];
+}
 
-vector<bool> cSeen;
-vector<bool> tSeen;
+int dist(int cur, int dest, int par) {
+	if (cur == dest) return 0;
+	for (int n : graph[cur]) if (n != par) {
+		int val = dist(n, dest, cur);
+		if (val != -1) return 1+val;
+	}
+	return -1;
+}
 
-vi cSize;
-vi tSize;
-vi bSize;
+void solve() {
+	cin >> N;
+	int A, B, DA, DB; cin >> A >> B >> DA >> DB;
+	
+	graph = vector<vi> (N);
+	F0R(i, N-1) {
+		int a, b; cin >> a >> b; --a; --b;
+		graph[a].push_back(b);
+		graph[b].push_back(a);
+	}
 
-vi tFound;
-
-void cdfs(int cur, int rep) {
-	cRep[cur] = rep;
-	for (int n : cGraph[cur]) if (!cSeen[n]) {
-		cSeen[n] = true;
-		cdfs(n, rep);
+	diam = 0;
+	diameter(0, -1);
+	DA = min(DA, diam);
+	DB = min(DB, diam);
+	if (dist(A-1, B-1, -1) <= DA) {
+		print("Alice");
+	} else if (DB > 2 * DA) {
+		print("Bob");
+	} else {
+		print("Alice");
 	}
 }
 
-map<int, int> occ;
-void tdfs(int cur, int rep) {
-	tFound.push_back(cur);
-	occ[cRep[cur]]++;
-	for (int n : tGraph[cur]) if (!tSeen[n]) {
-		tSeen[n] = true;
-		tdfs(n, rep);
-	}
-}
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> N >> K >> L;
-
-	cGraph.resize(N); tGraph.resize(N);
-	cRep.resize(N); tRep.resize(N); cSeen.resize(N); tSeen.resize(N); cSize.resize(N); tSize.resize(N); bSize.resize(N);
-
-	F0R(i, K) {
-		int a, b; cin >> a >> b; --a; --b;
-		cGraph[a].push_back(b);
-		cGraph[b].push_back(a);
-	}
-	F0R(i, L) {
-		int a, b; cin >> a >> b; --a; --b;
-		tGraph[a].push_back(b);
-		tGraph[b].push_back(a);
-	}
-
-	F0R(i, N) if (!cSeen[i]) {
-		cSeen[i] = true;
-		cdfs(i, i);
-	}
-
-	F0R(i, N) if (!tSeen[i]) {
-		occ = map<int, int> ();
-		tFound = vi ();
-		tSeen[i] = true;
-		tdfs(i, i);
-		for (int x : tFound) {
-			bSize[x] = occ[cRep[x]];
-		}
-	}
-	F0R(i, N) cout << bSize[i] << " ";
+	int T; cin >> T;
+	F0R(i, T) solve();
 }

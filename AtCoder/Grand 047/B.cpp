@@ -53,70 +53,49 @@ namespace output {
 
 using namespace output;
 
-int N, K, L;
-vector<vi> cGraph;
-vector<vi> tGraph;
+const int maxN = 1e6+10;
+int trie [maxN][26] = {0};
+int trieEnds [maxN] = {0};
+int trieInsert = 1;
 
-vi cRep;
-vi tRep;
-
-vector<bool> cSeen;
-vector<bool> tSeen;
-
-vi cSize;
-vi tSize;
-vi bSize;
-
-vi tFound;
-
-void cdfs(int cur, int rep) {
-	cRep[cur] = rep;
-	for (int n : cGraph[cur]) if (!cSeen[n]) {
-		cSeen[n] = true;
-		cdfs(n, rep);
-	}
-}
-
-map<int, int> occ;
-void tdfs(int cur, int rep) {
-	tFound.push_back(cur);
-	occ[cRep[cur]]++;
-	for (int n : tGraph[cur]) if (!tSeen[n]) {
-		tSeen[n] = true;
-		tdfs(n, rep);
-	}
-}
 int main() {
     ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> N >> K >> L;
-
-	cGraph.resize(N); tGraph.resize(N);
-	cRep.resize(N); tRep.resize(N); cSeen.resize(N); tSeen.resize(N); cSize.resize(N); tSize.resize(N); bSize.resize(N);
-
-	F0R(i, K) {
-		int a, b; cin >> a >> b; --a; --b;
-		cGraph[a].push_back(b);
-		cGraph[b].push_back(a);
-	}
-	F0R(i, L) {
-		int a, b; cin >> a >> b; --a; --b;
-		tGraph[a].push_back(b);
-		tGraph[b].push_back(a);
+	int N; cin >> N;
+	vector<vi> SS (N);
+	F0R(i, N) {
+		string res; cin >> res;
+		SS[i] = vector<int> (res.begin(), res.end());
+		F0R(j, SS[i].size()) SS[i] -= 'a';
 	}
 
-	F0R(i, N) if (!cSeen[i]) {
-		cSeen[i] = true;
-		cdfs(i, i);
-	}
+	sort(SS.begin(), SS.end(), [](const auto& lhs, const auto& rhs) {
+		return lhs.size() < rhs.size();
+	});
 
-	F0R(i, N) if (!tSeen[i]) {
-		occ = map<int, int> ();
-		tFound = vi ();
-		tSeen[i] = true;
-		tdfs(i, i);
-		for (int x : tFound) {
-			bSize[x] = occ[cRep[x]];
+	ll ans = 0;
+
+	for (vi S : SS) {
+		vi early (26, S.size());
+		R0F(i, S.size()) early[i] = S[i];
+
+		int node = 0;
+		F0R(l, 26) if (early[l] < S.size() && trie[node][l] != 0) ans += trieEnds[node][l];
+
+		R0F(i, S.size()) {
+			int c = S[i];
+			node = trie[node][c];
+			if (node == 0) break;
+			F0R(l, 26) if (early[l] < i && trie[node][l] != 0) ans += trieEnds[node][l];
 		}
+
+		// insert reverse thing
+		int node = 0;
+		R0F(i, S.size()) {
+			int c = S[i];
+			if (trie[node][c] == 0) trie[node][c] = trieInsert++;
+			node = trie[node][c];
+		}
+		trieEnds[node]++;
 	}
-	F0R(i, N) cout << bSize[i] << " ";
+	print(ans);
 }
